@@ -2,9 +2,6 @@ from HersheyFonts import HersheyFonts
 import matplotlib.pyplot as plt
 import numpy as np
 
-r = []
-theta = []
-
 def cartesian_to_polar(x, y, cx=150, cy=150):
     dx = x - cx
     dy = y - cy
@@ -14,19 +11,25 @@ def cartesian_to_polar(x, y, cx=150, cy=150):
     return r, theta  # Return radians directly
 
 def draw_line(x1, y1, x2, y2):
+    # print(f"MOVE_TO x={x1:.2f}, y={y1:.3f} ")
+    # print(f"DRAW_TO x={x2:.2f}, y={y2:.3f} ")
     plt.plot([x1, x2], [y1, y2], 'k-')
     r1, theta1 = cartesian_to_polar(x1, y1)
     r2, theta2 = cartesian_to_polar(x2, y2)
-    # print(f"MOVE_TO r={r1:.2f}, θ={theta1:.3f} rad")
-    # print(f"DRAW_TO r={r2:.2f}, θ={theta2:.3f} rad")
-    r.append(r1)
-    r.append(r2)
-    theta.append(theta1)
-    theta.append(theta2)
+    print(f"MOVE_TO r={r1:.2f}, θ={theta1:.3f} rad")
+    print(f"DRAW_TO r={r2:.2f}, θ={theta2:.3f} rad")
+
+def interpolate_line(x1, y1, x2, y2, num_points):
+    """Returns a list of (x, y) points from (x1, y1) to (x2, y2) with num_points in between (including endpoints)."""
+    return list(zip(
+        np.linspace(x1, x2, num_points),
+        np.linspace(y1, y2, num_points)
+    ))
 
 thefont = HersheyFonts()
 thefont.load_default_font()
-thefont.normalize_rendering(85)  # Set height to 85 units
+thefont.load_default_font('rowmand')  #gothiceng rowmant
+thefont.normalize_rendering(105)  # Set height to 85 units
 
 word = "FIBO_G07"
 lines = list(thefont.lines_for_text(word))
@@ -39,31 +42,24 @@ height = max_y - min_y
 offset_x = (300 - width) / 2 - min_x
 offset_y = (300 - height) / 2 - min_y
 
-new_lines = []  
-
+theta = []
+rr = []
 resolution = 5  # Number of points per segment (increase for higher resolution)
 
-def interpolate_line(x1, y1, x2, y2, resolution):
-    """Interpolate points between two coordinates."""
-    x_values = np.linspace(x1, x2, resolution)
-    y_values = np.linspace(y1, y2, resolution)
-    return list(zip(x_values, y_values))
-
-print(len(lines), "lines")
 for (x1, y1), (x2, y2) in lines:
     fy1 = 300 - (y1 + offset_y)
     fy2 = 300 - (y2 + offset_y)
     points = interpolate_line(x1 + offset_x, fy1, x2 + offset_x, fy2, resolution)
-    # Draw the line segment
     for i in range(len(points) - 1):
         x_start, y_start = points[i]
         x_end, y_end = points[i + 1]
-        new_lines.append((x_start, y_start))
+        r1, theta1 = cartesian_to_polar(x_start, y_start)
+        r2, theta2 = cartesian_to_polar(x_end, y_end)
+        rr.append(r1)
+        rr.append(r2)
+        theta.append(theta1)
+        theta.append(theta2)
         draw_line(x_start, y_start, x_end, y_end)
-        if i == len(points) - 2:  # Last point
-            new_lines.append((x_end, y_end))
-
-print("Total points:", len(new_lines))
 
 plt.xlim(0, 300)
 plt.ylim(0, 300)
@@ -71,50 +67,12 @@ plt.gca().invert_yaxis()
 plt.axis('equal')
 plt.show()
 
-# for i in theta:
-#     print(i)
+print(f"Number of points: {len(rr)}")
 
-# r_values = [
-#  3.3376239578058375, 3.0426262481742046, 3.3376239578058375, 3.3804238531744506,
-#     3.1982694772218276, 3.205505486378527, 3.402195045337134, 3.0090411212931194,
-#     3.4463956781800302, 2.985567810588742, 3.4463956781800302, 3.5172328890628584,
-#     3.5172328890628584, 3.522099030702158, 3.522099030702158, 3.505571610099437,
-#     3.505571610099437, 3.458417139458012, 3.458417139458012, 3.3981092662341164,
-#     3.3981092662341164, 3.329814158894564, 3.329814158894564, 3.294241981985058,
-#     3.294241981985058, 3.2537954685870476, 3.2312393699112794, 3.2537954685870476,
-#     3.2537954685870476, 3.2336395024531996, 3.2336395024531996, 3.2049996055566248,
-#     3.2049996055566248, 3.141592653589793, 3.141592653589793, 3.0435473762959537,
-#     3.0435473762959537, 2.984175780863202, 2.984175780863202, 2.9590328004588864,
-#     2.9590328004588864, 2.9469071142058434, 2.9469071142058434, 2.985567810588742,
-#     3.7894040805168916, 3.7067420935965525, 3.7067420935965525, 3.5963119284107625,
-#     3.5963119284107625, 3.5073399548521373, 3.5073399548521373, 3.381763661449966,
-#     3.381763661449966, 3.1823863364576583, 3.1823863364576583, 3.0566908601400713,
-#     3.0566908601400713, 2.9656530281372655, 2.9656530281372655, 2.856862215067081,
-#     2.856862215067081, 2.7798634120698607, 2.7798634120698607, 2.691833040519954,
-#     2.691833040519954, 2.694072678432623, 2.694072678432623, 2.777613697080149,
-#     2.777613697080149, 2.934096427154591, 2.934096427154591, 3.258701398156657,
-#     3.258701398156657, 3.756255605511959, 3.756255605511959, 3.8999703677999764,
-#     3.8999703677999764, 3.9502424397977047, 3.9502424397977047, 3.9465961478444465,
-#     3.9465961478444465, 3.909448756929839, 3.909448756929839, 3.7894040805168916,
-#     1.9451299428024802, 0.8419416003422655, 5.996246554248817, 5.926273370827916,
-#     5.926273370827916, 5.8415929448722945, 5.8415929448722945, 5.781095108157592,
-#     5.781095108157592, 5.705993093306125, 5.705993093306125, 5.695182703632018,
-#     5.695182703632018, 5.722021894891235, 5.722021894891235, 5.783838585499456,
-#     5.783838585499456, 5.91385164950596, 5.91385164950596, 6.218758467754033,
-#     6.218758467754033, 0.12062366858010232, 0.12062366858010232, 0.2247111684146425,
-#     0.2247111684146425, 0.29849893158617935, 0.29849893158617935, 0.3147576613913089,
-#     0.3147576613913089, 0.2679104224233397, 0.2679104224233397, 0.2148154004016587,
-#     0.2148154004016587, 0.13477128447773107, 0.13477128447773107, 0.06548002492346461,
-#     0.06548002492346461, 6.250410162775511, 6.243989705252532, 6.250410162775511,
-#     5.964968306980805, 5.965237015828295, 5.965237015828295, 6.022582915432245,
-#     6.022582915432245, 6.147046346326445, 6.147046346326445, 6.228445527129706,
-#     6.228445527129706, 0.0798299857122373, 0.0798299857122373, 0.15074638112042166,
-#     0.15074638112042166, 0.1632402827848374, 0.1632402827848374, 0.1560248430010513,
-#     0.1560248430010513, 0.12565033060984626, 0.12565033060984626, 0.06053201978210717,
-#     0.06053201978210717, 6.24360203324249, 6.24360203324249, 6.184497046531179,
-#     6.184497046531179, 6.0838480021972625, 6.0838480021972625, 6.016042786313891,
-#     6.016042786313891, 5.978382282589349, 5.978382282589349, 5.964968306980805,
-#     6.087154002963542, 0.11519028169268404, 6.040289974371982, 6.087154002963542
-# ]
-# print(len(r_values))
-# theta_value = []
+# Save to file
+with open("r_last.txt", "w") as f:
+    for r in rr:
+        f.write(f"{r:.2f},")
+with open("theta_last.txt", "w") as f:
+    for t in theta:
+        f.write(f"{t:.3f},")
